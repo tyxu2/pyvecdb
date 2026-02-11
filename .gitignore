@@ -2,3 +2,5 @@
 .vscode/
 build/
 cmake-build-debug/
+pyvecdb.egg-info/
+__pycache__/
