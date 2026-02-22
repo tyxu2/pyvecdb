@@ -1,4 +1,4 @@
-from ._pyvecdb import IndexFlat, IndexIVF, IndexHNSW
+from ._pyvecdb import IndexFlat, IndexIVF, IndexHNSW, is_cuda_enabled
 
 def read_fvecs(filename):
     import numpy as np

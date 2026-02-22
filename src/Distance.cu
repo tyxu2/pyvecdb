@@ -53,4 +53,8 @@ void compute_l2_distance_cuda(int d, int n, const float* x, int m, const float* 
     CHECK_CUDA(cudaFree(d_dists));
 }
 
+bool is_cuda_enabled() {
+    return true;
+}
+
 } // namespace pyvecdb

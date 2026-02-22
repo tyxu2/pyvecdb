@@ -10,10 +10,7 @@
     *   **HNSW (Hierarchical Navigable Small World)**: Graph-based index for ultra-fast approximate nearest neighbor search.
 *   **Performance**:
     *   **C++ Core**: All heavy lifting (distance calcs, graph traversal) is done in optimized C++.
-    *   **CUDA Acceleration**: Automatically detects CUDA capable GPUs to accelerate distance matrix calculations (essential for Flat index and IVF training).
-*   **Usability**:
-    *   **Pythonic API**: Clean Python wrapper (`VectorDatabase`) that behaves like standard libraries.
-    *   **Seamless Integration**: Takes numpy arrays as input.
+    *   **CUDA Acceleration**: Optional GPU path; current default build is CPU-only (see Configuration).
 
 ## Project Structure
 
@@ -43,24 +40,24 @@ pyvecdb/
 *   (Optional) CUDA Toolkit for GPU support.
 
 ```bash
-# Clone and install
+# Clone and install (CPU-only by default)
 pip install .
 ```
 
-If CMake finds `nvcc`, it will automatically compile the GPU kernels.
+If you want GPU support, see the CUDA section below and rebuild.
 
 ## Configuration & Build Options
 
 ### 1. CUDA Acceleration
-CUDA support is **automatically detected** at build time.
-*   **Enable**: Ensure `nvcc` is in your system `$PATH` before installing.
+CUDA support exists, but the current build defaults to CPU-only.
+*   **Default**: `CMakeLists.txt` sets `DISABLE_CUDA` to `ON`.
+*   **Enable**: Set `DISABLE_CUDA` to `OFF`, ensure `nvcc` is in your `$PATH`, then reinstall.
 *   **Verify**:
     ```python
-    import pyvecdb
-    from pyvecdb._pyvecdb import is_cuda_enabled
+    from pyvecdb import is_cuda_enabled
     print(f"CUDA Active: {is_cuda_enabled()}")
     ```
-*   **Fallback**: If CUDA is not found, it gracefully degrades to CPU-only mode.
+*   **Fallback**: If CUDA is not found or disabled, it runs in CPU-only mode.
 
 ### 2. Index Hyperparameters
 You can tune the performance/accuracy trade-off using these parameters:
@@ -74,6 +71,22 @@ You can tune the performance/accuracy trade-off using these parameters:
 | **HNSW** | `ef` | 50 | Search depth during query. | Increase to `100+` for higher recall. |
 
 ## Usage
+
+### Quick Start
+```python
+import numpy as np
+import pyvecdb
+
+# Create a small index and search
+vectors = np.random.random((100, 128)).astype("float32")
+query = np.random.random((1, 128)).astype("float32")
+
+db = pyvecdb.VectorDatabase("flat", dim=128)
+db.add(vectors)
+
+dists, labels = db.search(query, k=5)
+print(labels)
+```
 
 ### 1. Flat Index (Exact Search)
 ```python
@@ -120,8 +133,7 @@ db.add(data)
 results = db.search(query, k=5)
 ```
 
-## Implementation Details
+## Troubleshooting
 
-*   **Hybrid Build**: We use `scikit-build` style logic (via custom `setup.py`) to bridge CMake and Python setuptools.
-*   **Memory Management**: Vectors are stored in contiguous C++ `std::vector` memory, exposed to Python as needed.
-*   **Extensibility**: The `Index` base class makes it easy to add new algorithms (e.g., PQ, LSH) in the future.
+*   **ImportError: undefined symbol: fatbinData**: Build likely picked CUDA without proper linking; keep CPU-only by leaving `DISABLE_CUDA` set to `ON` and reinstall.
+*   **AttributeError: module 'pyvecdb' has no attribute 'is_cuda_enabled'**: Reinstall the package and restart Python so the updated `pyvecdb/__init__.py` is picked up.

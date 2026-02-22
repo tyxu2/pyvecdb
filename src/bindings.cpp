@@ -46,9 +46,14 @@ std::pair<py::array_t<float>, py::array_t<long>> index_search(Index& index, py::
     return {distances, labels};
 }
 
+// Wrapper function to expose is_cuda_enabled to Python
+bool python_is_cuda_enabled() {
+    return is_cuda_enabled();
+}
+
 PYBIND11_MODULE(_pyvecdb, m) {
     m.doc() = "Lightweight vector database C++ core";
-    m.def("is_cuda_enabled", &is_cuda_enabled, "Check if compiled with CUDA support");
+    m.def("is_cuda_enabled", &python_is_cuda_enabled, "Check if compiled with CUDA support");
 
     py::class_<Index, std::shared_ptr<Index>>(m, "Index")
         .def("get_d", &Index::get_d)
